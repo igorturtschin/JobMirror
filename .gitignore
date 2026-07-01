@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+*.egg-info/
+.venv/
+venv/
+
+# Keys / secrets
+keys/
+*.key
+*.pem
+*.p12
+.env
+
+
+# Notes
+notes/
+v2/
+
+
+# IDE
+.vscode/
+.idea/
