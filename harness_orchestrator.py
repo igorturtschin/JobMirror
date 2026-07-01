@@ -331,6 +331,11 @@ async def run_profile_intake_adk(nonce: str):
         if not message:
             continue
 
+        gate_result = policy_gate("raw_input", message)
+        if gate_result != "pass":
+            expecting_short_answer = False
+            continue
+
         content = types.Content(role="user", parts=[types.Part(text=message)])
         final_text = ""
         async for event in runner.run_async(user_id=user_id, session_id=session.id, new_message=content):
@@ -434,6 +439,11 @@ async def run_job_intake_adk(nonce: str):
                 lines.append(line)
             message = "\n".join(lines).strip()
         if not message:
+            continue
+
+        gate_result = policy_gate("raw_input", message)
+        if gate_result != "pass":
+            expecting_short_answer = False
             continue
 
         content = types.Content(role="user", parts=[types.Part(text=message)])
@@ -650,6 +660,11 @@ async def run_post_match_gap_intake_adk(nonce: str) -> None:
                 lines.append(line)
             message = "\n".join(lines).strip()
         if not message:
+            continue
+
+        gate_result = policy_gate("raw_input", message)
+        if gate_result != "pass":
+            expecting_short_answer = False
             continue
 
         content = types.Content(role="user", parts=[types.Part(text=message)])

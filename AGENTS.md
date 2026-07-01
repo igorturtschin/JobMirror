@@ -12,8 +12,8 @@
 
 * **One agent with multiple skills.** Not multi-agent, not sub-agents. Skills are exposed to the single root agent as **tools**.
 * Skills: `profile-intake`, `pii-check` (gate), `job-intake`, `match`, `discussion`, `cv-generation`, `post-match` (menu/router after match).
-* **Migrating to Google ADK** (target stack below). Current running code (`harness_orchestrator.py`) still uses a manual `openai` client against OpenRouter — migration is IN PROGRESS, not done.
-* **Decided:** `policy_gate` is implemented as an ADK `before_tool_callback`. Internal logic unchanged: deterministic regex rules run first, then semantic check (`gemini-2.5-flash-lite`) only if regex is inconclusive, then HITL pause on flag.
+* **ADK migration: DONE.** All 7 skills (`profile-intake`, `pii-check`, `job-intake`, `match`, `discussion`, `cv-generation`, `post-match` with all 3 options) run on Google ADK. No direct `openai`-client calls remain in the active skill path; the `openai` client is used only by two internal utilities (`scan_for_pii`, `semantic_check_is_command`) — shared helpers, not skills, left as-is intentionally.
+* **Decided:** `policy_gate` has two call sites. (1) An ADK `before_tool_callback` (`policy_gate_callback`), gating tool-call arguments (e.g. `save_data`-type actions) before execution. (2) A direct in-script call on raw user input (`policy_gate("raw_input", message)`), run in the harness loop right after text is collected and before it is sent to the LLM at all — restored to close a gap where an LLM agent could simply refuse/react to an injection attempt in free text without ever calling a tool, leaving the deterministic/semantic checks unreached. The `raw_input` action name deliberately does not match the PII-write rule (`applies_to: [save_data]`), so PII regex still only fires at the `save_data` call site, after PII-check has run — not on raw pre-PII text. Internal logic unchanged either way: deterministic regex rules run first, then semantic check (`gemini-2.5-flash-lite`) only if regex is inconclusive, then HITL pause on flag.
 
 ## Stack (target)
 
@@ -46,10 +46,12 @@
 
 * **PII gate (mandatory, HITL):** before anything reaches long-term memory, `pii-check` scans for PII (name/surname/address/phone/email) and requires the user to manually classify each fragment (1–6). No automated masking.
 
-* **Policy gate (`policies.yaml`):** runs before every `save_data`-type action.
+* **Policy gate (`policies.yaml`):** runs at two points.
 
-  * Deterministic rules (regex): block unmasked PII, block instruction-like content ("ignore previous instructions", etc.).
-  * Semantic check (Gemini 2.5 Flash-Lite): flags text that looks like a command rather than user data → pauses for HITL approve/reject.
+  * **Pre-LLM (`raw_input`):** every message the user types in `profile-intake`, `job-intake`, and the `post-match` gap-closing loop is checked before it is sent to the LLM agent at all — catches injection attempts even if the LLM would otherwise just refuse in plain text without calling a tool.
+  * **Pre-persistence (`save_data`):** runs before every `save_data`-type action (ADK `before_tool_callback`), additionally blocking unmasked PII from being written.
+  * Deterministic rules (regex): block instruction-like content ("ignore previous instructions", etc.) at both points; block unmasked PII only at the `save_data` point (`applies_to: [save_data]`), so raw pre-PII-check text isn't blocked for containing digits/patterns that only become a problem if written unmasked.
+  * Semantic check (Gemini 2.5 Flash-Lite): flags text that looks like a command rather than user data → pauses for HITL approve/reject, at both points.
   * HITL approval is currently emulated via terminal `input()` — a demo stand-in, not a production operator interface.
 
 * **Append-only profile:** no deletion/overwrite without explicit user request and confirmation.
@@ -66,7 +68,7 @@
 * `pii-check` — gate skill, see Security principles above.
 * `job-intake` — capture vacancy text, same nonce + PII gate flow, save to `data/job.json`.
 * `match` — evidence-based comparison of profile vs. job. Output: qualitative **Match Level (Strong / Partial / Weak)** + Strengths + Gaps + Bonus + one-sentence summary. **No numeric percentage.** Never infers unstated skills; unknown stays unknown.
-* `post-match` — menu shown after every match result: (1) add experience → re-run PII gate → append profile → re-run match; (2) ask a question → hand off to `discussion`; (3) proceed to CV → hand off to `cv-generation`.
+* `post-match` — recurring menu shown after every match result, not three separate terminal branches: (1) add experience → re-run PII gate → append profile → re-run match → show menu again; (2) ask a question → hand off to `discussion` → answer shown → menu shown again; (3) proceed to CV → hand off to `cv-generation` → on final "Looks good, finish" the session ends, on "Revise" it loops back to the Vibe Diff step. Only option 3's final acceptance exits the loop.
 * `discussion` — acts as a career consultant/advisor, scoped to profile + job + latest match result + general model knowledge. No web/internet, no other sources, no algorithmic/computational tasks. Cannot modify state, cannot call other skills or trigger match/CV. May draft career-related texts (recruiter/outreach messages, LinkedIn messages, CV sections) grounded in profile/job — but does not produce a classic formal cover letter document. If a request's fit within career-consulting scope is doubtful, pause for HITL approval (same approve/reject mechanism as the policy gate) rather than refusing outright or complying blindly. Clearly out-of-scope questions get a fixed refusal message.
 * `cv-generation` — Strategic Vibe Diff (plain-English strategy summary) requires explicit user approval (HITL) before generation. Zero fabrication: every claim traces to `data/profile.json`. Output: plain text CV (Summary / Experience / Skills), saved to `data/cv.md`. **Cover letter is out of scope — not built.**
 

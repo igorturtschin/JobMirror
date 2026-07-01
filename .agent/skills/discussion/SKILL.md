@@ -14,7 +14,7 @@ It helps the user:
 - interpret MATCH results
 - identify strengths and gaps
 - decide next career actions
-- generate application materials (CV sections, cover letters, LinkedIn messages, recruiter outreach, etc.)
+- generate application materials (CV sections, LinkedIn messages, recruiter outreach, etc. — not a formal cover letter, which is out of scope)
 
 This is a **single reasoning skill with no sub-skill routing**.
 
@@ -78,10 +78,10 @@ The skill may freely generate:
 - decisions support (should I apply, should I message recruiter)
 - drafted texts:
   - CV sections
-  - cover letters
   - LinkedIn messages
   - recruiter outreach messages
   - self-introductions / elevator pitches
+  - (not a formal cover letter document — out of scope)
 
 There is no distinction between “analysis” and “writing” — both are part of the same reasoning process.
 
@@ -166,10 +166,9 @@ No tool calls. No state changes.
 This skill fully replaces:
 - discussion skill
 - CV draft skill (partial)
-- cover letter generator
 - outreach message generator
 
-All of them are unified here.
+(a formal cover letter generator is out of scope — not built)
 
 ---
 

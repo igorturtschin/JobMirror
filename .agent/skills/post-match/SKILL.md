@@ -16,7 +16,7 @@
 2. **Present menu**:
 
    * "(1) Add experience and improve your profile"
-   * "(2) Ask a question \[coming soon]"
+   * "(2) Ask a question"
    * "(3) Proceed to CV"
 
 ### Option 1 — Add experience and improve your profile
@@ -26,7 +26,7 @@
 3. Run `pii-check` on the new text before it touches long-term memory.
 4. Append the sanitized text to `data/profile.json` (Append-only).
 5. Re-run `match` with the updated profile + existing job.
-6. Return to step 1 of this skill (show new MATCH result, show menu again).
+6. Show the new MATCH result, then present the same menu again.
 
 ### Option 2 — Ask a question
 
@@ -38,9 +38,10 @@
 
 ### Option 3 — Proceed to CV
 
-* Hand off to `cv-generation` (not yet implemented — stub for now).
-* Display: "CV generation is coming soon."
-* Present the same menu again (the 3 options above).
+1. Hand off to `cv-generation`: produces a Strategic Vibe Diff (plain-English strategy summary) and requires explicit user approval before generating anything.
+2. On approval, generate the CV (Summary / Experience / Skills), grounded only in `data/profile.json` — zero fabrication.
+3. Show the CV and offer "(1) Looks good, finish" / "(2) Revise" — Revise loops back to the Vibe Diff step.
+4. "Looks good, finish" saves the CV to `data/cv.md` and ends the session (does not return to this menu).
 
 ## Anti-patterns
 

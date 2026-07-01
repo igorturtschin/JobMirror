@@ -1,30 +1,18 @@
-Start
-  │
-  ▼
-Profile input
-  │
-  ├─ Need to add something? → Yes ───────────┐
-  │                                                                                    │
-  └────────────── No ◄──────────────  ┘
-  │
-  ▼
-Profile PII
-  │
-  ▼
-Job input
-  │
-  ├─ Need to add something? → Yes ─────────┐
-  │                                                                               │
-  └────────────── No ◄─────────────┘
-  │
-  ▼
-Job PII
-  │
-  ▼
-
-MATCH
-  ▼
-START DISCUSSION
-  ├── (1) GAP → update profile → new MATCH → START DISCUSSION
-  ├── (2) DISCUSSION → answer → START DISCUSSION
-  └── (3) CV → confirm → generate / return
+```mermaid
+flowchart TD
+    Start([Start]) --> ProfileInput[Profile input]
+    ProfileInput --> ProfileAdd{Need to add something?}
+    ProfileAdd -->|Yes| ProfileInput
+    ProfileAdd -->|No| ProfilePII[Profile PII]
+    ProfilePII --> JobInput[Job input]
+    JobInput --> JobAdd{Need to add something?}
+    JobAdd -->|Yes| JobInput
+    JobAdd -->|No| JobPII[Job PII]
+    JobPII --> Match[MATCH]
+    Match --> Discussion[START DISCUSSION]
+    Discussion -->|1 GAP| Gap[update profile -> new MATCH]
+    Gap --> Discussion
+    Discussion -->|2 DISCUSSION| Answer[answer]
+    Answer --> Discussion
+    Discussion -->|3 CV| CV[confirm -> generate / return]
+```

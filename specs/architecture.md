@@ -222,15 +222,15 @@ The Orchestrator must strictly follow these scenarios.
    - **Observation:** [The result returned by the tool]
 
 ## Scenario 6: Policy Gate (Prompt Injection Defense)
-**Given:** The agent is about to execute any tool call (save data, mask PII, run match, call CV-gen, etc.).
-**When:** The orchestrator prepares the call's arguments.
-**Then:** The arguments are checked against `policies.yaml` BEFORE execution:
-   - **Deterministic rules** (Traffic Light): fast regex/pattern checks — e.g. block writing un-masked PII to `data/profile.json`, block tool arguments that contain text resembling instructions directed at the agent (e.g. "ignore previous instructions", "system:", "you must now...").
-   - **Semantic checks** (Intelligent Referee): for ambiguous cases, a lightweight model call (Gemini 2.5 Flash-Lite) classifies whether the argument content is data or an injected command.
+**Given:** The agent is about to execute any tool call (save data, mask PII, run match, call CV-gen, etc.), OR the harness is about to send a freshly collected user message to an LLM agent for the first time in `profile-intake`, `job-intake`, or the `post-match` gap-closing loop.
+**When:** The orchestrator prepares the call's arguments (tool-call path), or the harness has just collected raw text from the user (pre-LLM path).
+**Then:** The content is checked against `policies.yaml` BEFORE execution / BEFORE being sent to the LLM:
+   - **Deterministic rules** (Traffic Light): fast regex/pattern checks — e.g. block writing un-masked PII to `data/profile.json` (scoped to the `save_data` action only, so it does not fire on raw text collected before PII-check has run), block content that contains text resembling instructions directed at the agent (e.g. "ignore previous instructions", "system:", "you must now...") — this rule applies at both the pre-LLM and pre-persistence points.
+   - **Semantic checks** (Intelligent Referee): for ambiguous cases, a lightweight model call (Gemini 2.5 Flash-Lite) classifies whether the content is data or an injected command — at both points.
 **And:** If a deterministic rule fires → the action is blocked outright, logged, and the user is informed.
 **And:** If a semantic check flags risk → the action is paused for explicit HITL approval before proceeding, with a blocking `input()` call that explicitly flushes stdout beforehand so multi-line user input isn't misrouted as the approve/reject answer.
 **And:** Every gate decision (pass/block/HITL) is recorded in `logs/trajectory.log`.
-**And:** `policy_gate` is implemented as an ADK `before_tool_callback`; its signature uses `tool_context=`, not `context=` — this is a recurring source of regressions and must be verified against the actual ADK callback signature on every edit, not assumed from memory.
+**And:** `policy_gate` has two call sites: (1) an ADK `before_tool_callback` (`policy_gate_callback`) gating tool-call arguments — its signature uses `tool_context=`, not `context=`, a recurring source of regressions that must be verified against the actual ADK callback signature on every edit, not assumed from memory; (2) a direct in-script call (`policy_gate("raw_input", message)`) on the raw collected message, before it is handed to the LLM agent at all. The second call site exists because an LLM agent can refuse or otherwise react to an injection attempt in plain text without ever invoking a tool — in that case the tool-call callback is never reached, and without the pre-LLM check the deterministic/semantic checks would silently not run at all.
 
 ## Scenario 7: Post-Match Menu (Gap Closing)
 **Given:** The `match` skill has produced a result (Match Level, Strength, Gap, Bonus).
