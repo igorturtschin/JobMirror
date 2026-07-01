@@ -5,7 +5,7 @@ Status: `profile-intake`, `job-intake`, `match`, and `post-match`
 (now all 3 options) run on Google ADK.
 - Option 1 (gap-closing): ADK intake agent -> re-run match.
 - Option 2 (discussion): read-only ADK agent, no tools, scoped to
-  Profile + Job + latest MATCH result. Loops until user types BACK.
+  Profile + Job + latest MATCH result. Numbered choice to continue or return.
 - Option 3 (cv-generation): Strategic Vibe Diff (HITL approval) ->
   zero-fabrication CV generation from Profile only -> save to
   data/cv.md, with a finish/revise loop.
@@ -720,18 +720,13 @@ def run_discussion(profile_text: str, job_text: str, match_result: dict | None) 
         return final_text
 
     print("\nJobMirror: Ask a career-related question about your profile, this job, "
-          "or the MATCH result. Type 'DONE' on a new line to send, or type 'BACK' "
-          "alone to return to the menu.")
+          "or the MATCH result. Type 'DONE' on a new line to send.")
     while True:
         lines = []
         while True:
             line = input("> ")
-            stripped = line.strip().upper()
-            if stripped == "DONE":
+            if line.strip().upper() == "DONE":
                 break
-            if stripped == "BACK" and not lines:
-                log_trajectory("User exited discussion.", "discussion", "Done")
-                return
             lines.append(line)
         question = "\n".join(lines).strip()
         if not question:
@@ -741,7 +736,10 @@ def run_discussion(profile_text: str, job_text: str, match_result: dict | None) 
         answer = asyncio.run(_ask(question))
         print(f"\nJobMirror: {answer}\n")
         log_trajectory("Discussion answer generated.", "discussion", "Done")
-        print("(Type another question, or 'BACK' to return to the menu.)")
+
+        if get_user_choice("What next?", ["Ask another question", "Return to menu"]) == 2:
+            log_trajectory("User exited discussion.", "discussion", "Done")
+            return
 
 CV_VIBE_DIFF_INSTRUCTION = """\
 You are the strategy step of JobMirror's 'cv-generation' skill.
@@ -859,7 +857,7 @@ def run_cv_generation(profile_text: str, job_text: str, match_result: dict | Non
         print(f"\nJobMirror:\n\n{cv_text}\n")
         choice = get_user_choice(
             "What would you like to do next?",
-            ["Looks good, finish", "Revise (go back to Strategic Vibe Diff)"],
+            ["Looks good, finish", "Revise"],
         )
         if choice == 1:
             os.makedirs(DATA_DIR, exist_ok=True)
@@ -867,8 +865,17 @@ def run_cv_generation(profile_text: str, job_text: str, match_result: dict | Non
             with open(cv_path, "w", encoding="utf-8") as f:
                 f.write(cv_text)
             log_trajectory("CV saved to data/cv.md.", "cv-generation:save", "stored")
-            print(f"\nJobMirror: CV saved to {cv_path}.")
-            return
+            log_trajectory("User accepted final CV.", "cv-generation:finish", "Session complete")
+            separator = "-" * 60
+            print(
+                f"\n{separator}\n\n"
+                f"Congratulations! Your CV is ready\n"
+                f"CV is saved to {cv_path}\n\n"
+                "This is just the beginning — keep expanding your profile with more detail, "
+                "and it will get easier to generate the optimal CV for any future vacancy.\n\n"
+                f"{separator}"
+            )
+            sys.exit(0)
         else:
             # Revise: go back to Strategic Vibe Diff step.
             run_cv_generation(profile_text, job_text, match_result)
