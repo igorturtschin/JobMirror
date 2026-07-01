@@ -1,0 +1,7 @@
+{"timestamp": "2026-07-01T17:09:22.399282+00:00Z", "thought": "Policy gate passed for action 'scan_for_pii'.", "tool_call": "policy_gate", "observation": "pass"}
+{"timestamp": "2026-07-01T17:09:22.402675+00:00Z", "thought": "Initiating PII scan.", "tool_call": "pii-check:scan_for_pii", "observation": "Awaiting response"}
+{"timestamp": "2026-07-01T17:09:23.416204+00:00Z", "thought": "Scan complete. Found 2 verified items.", "tool_call": "pii-check:scan_for_pii", "observation": "['John Miller', 'john.miller@email.com']"}
+{"timestamp": "2026-07-01T17:09:30.942794+00:00Z", "thought": "Fragment 'John Miller' masked as [[NAME]].", "tool_call": "pii-check:classify_pii_fragment", "observation": "masked"}
+{"timestamp": "2026-07-01T17:09:41.852115+00:00Z", "thought": "Fragment 'john.miller@email.com' masked as [[EMAIL]].", "tool_call": "pii-check:classify_pii_fragment", "observation": "masked"}
+{"timestamp": "2026-07-01T17:10:03.182875+00:00Z", "thought": "Policy gate passed for action 'save_data'.", "tool_call": "policy_gate", "observation": "pass"}
+{"timestamp": "2026-07-01T17:10:03.192721+00:00Z", "thought": "Profile entry persisted (append-only).", "tool_call": "profile-intake:save_profile_entry", "observation": "stored"}
