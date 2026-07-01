@@ -670,8 +670,10 @@ async def run_post_match_gap_intake_adk(nonce: str) -> None:
 def run_discussion(profile_text: str, job_text: str, match_result: dict | None) -> None:
     """discussion skill (v2--.agent--skills--discussion--SKILL.md): read-only
     career-consulting agent scoped to Profile + Job + latest MATCH result.
-    No tools, no state writes, no calls to other skills. Single LLM call
-    per user question — loops until the user asks to go back to the menu."""
+    No tools, no state writes, no calls to other skills. Answers exactly
+    one question per call, then returns to the caller (run_post_match_menu),
+    which shows the same three-option menu again — asking another question
+    is simply selecting (2) again from that menu, not a separate sub-loop."""
     match_summary = (
         json.dumps(match_result, ensure_ascii=False) if match_result
         else "No MATCH result available yet in this session."
@@ -721,25 +723,20 @@ def run_discussion(profile_text: str, job_text: str, match_result: dict | None) 
 
     print("\nJobMirror: Ask a career-related question about your profile, this job, "
           "or the MATCH result. Type 'DONE' on a new line to send.")
+    lines = []
     while True:
-        lines = []
-        while True:
-            line = input("> ")
-            if line.strip().upper() == "DONE":
-                break
-            lines.append(line)
-        question = "\n".join(lines).strip()
-        if not question:
-            continue
+        line = input("> ")
+        if line.strip().upper() == "DONE":
+            break
+        lines.append(line)
+    question = "\n".join(lines).strip()
+    if not question:
+        return
 
-        log_trajectory(f"Discussion question received: {question[:100]}", "discussion", "Awaiting response")
-        answer = asyncio.run(_ask(question))
-        print(f"\nJobMirror: {answer}\n")
-        log_trajectory("Discussion answer generated.", "discussion", "Done")
-
-        if get_user_choice("What next?", ["Ask another question", "Return to menu"]) == 2:
-            log_trajectory("User exited discussion.", "discussion", "Done")
-            return
+    log_trajectory(f"Discussion question received: {question[:100]}", "discussion", "Awaiting response")
+    answer = asyncio.run(_ask(question))
+    print(f"\nJobMirror: {answer}\n")
+    log_trajectory("Discussion answer generated.", "discussion", "Done")
 
 CV_VIBE_DIFF_INSTRUCTION = """\
 You are the strategy step of JobMirror's 'cv-generation' skill.

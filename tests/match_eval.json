@@ -1,0 +1,43 @@
+[
+  {
+    "id": "strong_001",
+    "description": "Strong match: senior Python backend, all core requirements covered",
+    "profile": "Senior Python backend developer with 8 years of experience. Built REST APIs with FastAPI and Django, designed PostgreSQL schemas, deployed services on AWS (ECS, RDS), led a team of 4 engineers.",
+    "job": "We are looking for a Senior Backend Engineer. Requirements: 5+ years Python, experience with REST API design, PostgreSQL, AWS deployment. Team leadership experience is a plus.",
+    "expected_match_level": "Strong",
+    "forbidden_gap_keywords": ["Python", "REST", "PostgreSQL", "AWS"]
+  },
+  {
+    "id": "partial_001",
+    "description": "Partial match: core language/framework covered, cloud/containers missing",
+    "profile": "Backend developer with 4 years of experience in Python and Django. Built internal tools and REST APIs. No experience with cloud platforms or containerization.",
+    "job": "Backend Engineer role requiring Python, Django, REST APIs, and hands-on experience with AWS or GCP, plus Docker/Kubernetes.",
+    "expected_match_level": "Partial",
+    "expected_gap_keywords": ["AWS", "GCP", "cloud", "Docker", "Kubernetes"]
+  },
+  {
+    "id": "weak_001",
+    "description": "Weak match: unrelated domain (design vs backend engineering)",
+    "profile": "Graphic designer with 6 years of experience in Adobe Photoshop, Illustrator, and brand identity design. No programming experience.",
+    "job": "Senior Backend Engineer role requiring 5+ years Python, distributed systems experience, and database design skills.",
+    "expected_match_level": "Weak",
+    "expected_gap_keywords": ["Python"]
+  },
+  {
+    "id": "no_fabrication_001",
+    "description": "Gap must not be fabricated: GraphQL is explicitly absent from profile, must appear as gap, not as strength",
+    "profile": "Frontend developer with React and TypeScript experience for 3 years. Built dashboards and admin panels.",
+    "job": "Frontend role requiring React, TypeScript, and GraphQL experience.",
+    "expected_match_level": "Partial",
+    "expected_gap_keywords": ["GraphQL"],
+    "forbidden_strength_keywords": ["GraphQL"]
+  },
+  {
+    "id": "no_fabrication_002",
+    "description": "Gap must not be fabricated for something the profile never mentions either way: model must not invent a gap about a skill absent from BOTH vacancy and profile (e.g. Kubernetes was never required)",
+    "profile": "QA engineer with 5 years of manual and automated testing experience using Selenium and Python. No experience with performance testing.",
+    "job": "QA Engineer role requiring manual testing, Selenium, and Python automation scripts.",
+    "expected_match_level": "Strong",
+    "forbidden_gap_keywords": ["Kubernetes", "performance testing"]
+  }
+]

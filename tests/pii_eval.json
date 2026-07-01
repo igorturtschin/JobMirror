@@ -1,0 +1,37 @@
+[
+  {
+    "id": "pos_001",
+    "description": "English CV with full name and email",
+    "input": "My name is John Carter and you can reach me at john.carter@gmail.com for any questions.",
+    "expected_pii": ["John Carter", "john.carter@gmail.com"],
+    "expect_pii_found": true
+  },
+  {
+    "id": "pos_002",
+    "description": "German CV with name and phone number",
+    "input": "Ich heisse Maria Schulz und meine Telefonnummer ist +49 170 1234567.",
+    "expected_pii": ["Maria Schulz", "+49 170 1234567"],
+    "expect_pii_found": true
+  },
+  {
+    "id": "pos_003",
+    "description": "English CV with address and email",
+    "input": "I live at 42 Baker Street, London. Contact me at anna.brown@outlook.com.",
+    "expected_pii": ["42 Baker Street, London", "anna.brown@outlook.com"],
+    "expect_pii_found": true
+  },
+  {
+    "id": "neg_001",
+    "description": "Pure technical skills, no PII",
+    "input": "Proficient in Python, Docker, Kubernetes, and PostgreSQL. 8 years of backend engineering experience.",
+    "expected_pii": [],
+    "expect_pii_found": false
+  },
+  {
+    "id": "neg_002",
+    "description": "German job description, no PII",
+    "input": "Wir suchen einen erfahrenen Softwareentwickler mit Kenntnissen in React und Node.js. Homeoffice moeglich.",
+    "expected_pii": [],
+    "expect_pii_found": false
+  }
+]
