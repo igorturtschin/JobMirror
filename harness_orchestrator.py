@@ -226,15 +226,28 @@ def classify_pii_fragment(current_text: str, fragment: str, category: int) -> di
     if fragment not in current_text:
         return {"status": "error", "sanitized_text": current_text, "reason": "fragment not found"}
     if category not in PLACEHOLDERS:
-        log_trajectory(f"Fragment '{fragment}' kept (not PII).", "pii-check:classify_pii_fragment", "no change")
-        return {"status": "kept", "sanitized_text": current_text}
+        # Replace the fragment with a [[REVIEWED:...]] marker so that
+        # any subsequent scan_for_pii call on the same text won't find
+        # the literal word and re-ask the same question.
+        # The marker is stripped back to the original word before saving
+        # (see _strip_reviewed_markers / save_* functions).
+        reviewed_marker = f"[[REVIEWED:{fragment}]]"
+        sanitized = current_text.replace(fragment, reviewed_marker)
+        log_trajectory(f"Fragment '{fragment}' kept (not PII); marked [[REVIEWED]].", "pii-check:classify_pii_fragment", "no change")
+        return {"status": "kept", "sanitized_text": sanitized}
     tag = PLACEHOLDERS[category]
     sanitized = current_text.replace(fragment, tag)
     log_trajectory(f"Fragment '{fragment}' masked as {tag}.", "pii-check:classify_pii_fragment", "masked")
     return {"status": "masked", "sanitized_text": sanitized}
 
+def _strip_reviewed_markers(text: str) -> str:
+    """Remove [[REVIEWED:...]] placeholders inserted by classify_pii_fragment
+    (category 5 — Not PII) and restore the original word before persisting."""
+    return re.sub(r"\[\[REVIEWED:(.*?)\]\]", r"\1", text)
+
 def save_profile_entry(text: str, nonce_tag: str) -> dict:
     """ADK tool. Gated by policy_gate_callback before this runs."""
+    text = _strip_reviewed_markers(text)
     wrapped = wrap_in_nonce(text, nonce_tag)
     save_data(PROFILE_PATH, wrapped)
     log_trajectory("Profile entry persisted (append-only).", "profile-intake:save_profile_entry", "stored")
@@ -361,6 +374,7 @@ async def run_profile_intake_adk(nonce: str):
 
 def save_job_entry(text: str, nonce_tag: str) -> dict:
     """ADK tool. Gated by policy_gate_callback before this runs."""
+    text = _strip_reviewed_markers(text)
     wrapped = wrap_in_nonce(text, nonce_tag)
     save_data(JOB_PATH, wrapped)
     log_trajectory("Job entry persisted.", "job-intake:save_job_entry", "stored")
@@ -492,6 +506,7 @@ def save_profile_gap_entry(text: str, nonce_tag: str) -> dict:
     """ADK tool for post-match option 1 (gap-closing). Same append semantics
     as profile-intake's save_profile_entry, reused under a distinct tool
     name so match/post-match don't import profile-intake internals."""
+    text = _strip_reviewed_markers(text)
     wrapped = wrap_in_nonce(text, nonce_tag)
     save_data(PROFILE_PATH, wrapped)
     log_trajectory("Profile entry persisted via post-match gap-closing (append-only).",
@@ -822,28 +837,40 @@ def _run_single_call(instruction: str, agent_name: str) -> str:
 def run_cv_generation(profile_text: str, job_text: str, match_result: dict | None) -> None:
     """cv-generation skill: Strategic Vibe Diff (HITL gate) -> generation
     -> output -> (1) finish / (2) revise loop, per
-    .agent--skills--cv-generation--SKILL.md."""
+    .agent--skills--cv-generation--SKILL.md.
+
+    The outer while-loop covers the full Vibe Diff → CV → Revise cycle
+    without recursion: selecting 'Revise' at the CV step simply restarts
+    the loop from the Vibe Diff phase."""
     match_summary = (
         json.dumps(match_result, ensure_ascii=False) if match_result
         else "No MATCH result available yet in this session."
     )
-    revision_note = ""
-    while True:
-        log_trajectory("Generating Strategic Vibe Diff.", "cv-generation:vibe_diff", "Awaiting response")
-        vibe_prompt = CV_VIBE_DIFF_INSTRUCTION.format(
-            profile_text=profile_text, job_text=job_text, match_summary=match_summary
-        )
-        if revision_note:
-            vibe_prompt += f"\n\nUSER REQUESTED REVISION: {revision_note}"
-        vibe_diff = _run_single_call(vibe_prompt, "cv_vibe_diff_agent").strip()
-        log_trajectory("Vibe Diff produced.", "cv-generation:vibe_diff", vibe_diff[:200])
 
-        print(f"\nJobMirror: {vibe_diff}")
-        approved = get_user_choice(
-            "Do you approve this strategy?",
-            ["Yes, proceed", "No, I want changes"],
-        )
-        if approved == 2:
+    revision_note = ""
+    vibe_diff = ""
+
+    while True:
+        # ── Phase 1: Strategic Vibe Diff (loop until approved) ──────────
+        while True:
+            log_trajectory("Generating Strategic Vibe Diff.", "cv-generation:vibe_diff", "Awaiting response")
+            vibe_prompt = CV_VIBE_DIFF_INSTRUCTION.format(
+                profile_text=profile_text, job_text=job_text, match_summary=match_summary
+            )
+            if revision_note:
+                vibe_prompt += f"\n\nUSER REQUESTED REVISION: {revision_note}"
+            vibe_diff = _run_single_call(vibe_prompt, "cv_vibe_diff_agent").strip()
+            log_trajectory("Vibe Diff produced.", "cv-generation:vibe_diff", vibe_diff[:200])
+
+            print(f"\nJobMirror: {vibe_diff}")
+            approved = get_user_choice(
+                "Do you approve this strategy?",
+                ["Yes, proceed", "No, I want changes"],
+            )
+            if approved == 1:
+                log_trajectory("Vibe Diff approved by user.", "cv-generation:vibe_diff", "approved")
+                revision_note = ""
+                break
             print("\nJobMirror: What would you like changed? Type 'DONE' on a new line to send.")
             lines = []
             while True:
@@ -853,12 +880,8 @@ def run_cv_generation(profile_text: str, job_text: str, match_result: dict | Non
                 lines.append(line)
             revision_note = "\n".join(lines).strip()
             log_trajectory("Vibe Diff revision requested.", "cv-generation:vibe_diff", revision_note[:200])
-            continue
 
-        log_trajectory("Vibe Diff approved by user.", "cv-generation:vibe_diff", "approved")
-        break
-
-    while True:
+        # ── Phase 2: CV Generation ───────────────────────────────────────
         log_trajectory("Generating CV.", "cv-generation:generate", "Awaiting response")
         cv_prompt = CV_GENERATION_INSTRUCTION.format(
             vibe_diff=vibe_diff, profile_text=profile_text, job_text=job_text
@@ -888,10 +911,9 @@ def run_cv_generation(profile_text: str, job_text: str, match_result: dict | Non
                 f"{separator}"
             )
             sys.exit(0)
-        else:
-            # Revise: go back to Strategic Vibe Diff step.
-            run_cv_generation(profile_text, job_text, match_result)
-            return
+        # choice == 2 (Revise): restart from Phase 1 (Vibe Diff)
+        revision_note = ""
+        log_trajectory("User requested Revise; restarting from Vibe Diff.", "cv-generation:revise", "restarting")
 
 def run_post_match_menu(nonce: str, initial_match_result: dict | None = None) -> None:
     """post-match skill: shows MATCH result (already printed by caller)
@@ -927,7 +949,7 @@ def run_post_match_menu(nonce: str, initial_match_result: dict | None = None) ->
             profile_text = load_all_entries(PROFILE_PATH)
             job_text = load_all_entries(JOB_PATH)
             run_cv_generation(profile_text, job_text, last_match_result)
-            continue
+            return  # normal exit is sys.exit(0) inside run_cv_generation; this is a safety fallback
 
 def run_match_workflow(nonce: str):
     profile_text = load_all_entries(PROFILE_PATH)

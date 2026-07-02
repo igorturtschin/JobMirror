@@ -446,3 +446,4 @@
 {"timestamp": "2026-07-01T23:07:23.171147+00:00Z", "thought": "CV generated.", "tool_call": "cv-generation:generate", "observation": "Done"}
 {"timestamp": "2026-07-01T23:07:26.623577+00:00Z", "thought": "CV saved to data/cv.md.", "tool_call": "cv-generation:save", "observation": "stored"}
 {"timestamp": "2026-07-01T23:07:26.632721+00:00Z", "thought": "User accepted final CV.", "tool_call": "cv-generation:finish", "observation": "Session complete"}
+{"timestamp": "2026-07-02T19:53:28.688713+00:00Z", "thought": "Fragment 'Google' kept (not PII); marked [[REVIEWED]].", "tool_call": "pii-check:classify_pii_fragment", "observation": "no change"}
