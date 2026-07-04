@@ -1,0 +1,12 @@
+Team Lead Digital Analytics
+
+Requirements
+- Experience leading digital analytics initiatives
+- Experience managing a team of at least 3 people
+- Minimum 5 years of experience in digital analytics
+- Strong experience with Google Stack (GA4, GTM, BigQuery, Looker Studio, Google Cloud)
+
+
+
+Bonus
+- Experience with server-side tracking (GTM Server-Side / Meta CAPI)
