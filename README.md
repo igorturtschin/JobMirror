@@ -123,7 +123,7 @@ flowchart TD
     Profile["Trusted Professional Profile"]
 
     Match["Job Matching"]
-    Consultation["Career Consultation"]
+    Consultation["Career Consultation (Discussion)"]
     CV["Tailored CV"]
 
     Update["Append-only Profile Updates"]
@@ -155,7 +155,7 @@ Domain logic is delegated to specialized Skills.
 - Profile Intake
 - Job Intake
 - Match
-- Career Consultation
+- Discussion (Career Consultation)
 - Post Match
 - CV Generation
 - PII Check
@@ -172,7 +172,7 @@ flowchart TD
     PI["Profile Intake"]
     JI["Job Intake"]
     M["Match"]
-    CC["Career Consultation"]
+    CC["Discussion (Career Consultation)"]
     PM["Post Match"]
     CV["CV Generation"]
     PII["PII Check"]
@@ -289,6 +289,13 @@ A machine-generated execution log produced by the orchestrator.
 It records every state transition and every executed operation.
 
 
+## `submission-evidence/01_resume_unstructured.txt`
+
+The raw, unstructured source resume text (a messy, first-person CV draft) used as the input for Profile Intake.
+
+It shows what the user actually pastes in — before the agent turns it into a structured, trusted professional profile.
+
+
 Together these files describe the same execution from two independent perspectives.
 
 | Artifact | Perspective |
@@ -331,13 +338,13 @@ flowchart TD
 
     JobPII --> Match[Job Match]
 
-    Match --> Consultation[Career Consultation]
+    Match --> Consultation[Discussion - Career Consultation]
 
     Consultation -->|Gap Closing| Gap[Update Profile]
 
     Gap --> Match
 
-    Consultation -->|Ask Questions| Answer[Career Consultation]
+    Consultation -->|Ask Questions| Answer[Discussion - Career Consultation]
 
     Answer --> Consultation
 
@@ -354,69 +361,64 @@ flowchart TD
 JobMirror/
 ├── .agent/
 │   └── skills/
-│       ├── career_consultation/
-│       │   └── SKILL.md
+│       ├── discussion/
+│       │   └── SKILL.md                 # Post-match career consultation
 │       ├── cv-generation/
-│       │   └── SKILL.md
+│       │   └── SKILL.md                 # Generates tailored CV
 │       ├── job-intake/
-│       │   └── SKILL.md
+│       │   └── SKILL.md                 # Collects job description
 │       ├── match/
-│       │   └── SKILL.md
+│       │   └── SKILL.md                 # Compares profile vs job
 │       ├── pii-check/
-│       │   └── SKILL.md
+│       │   └── SKILL.md                 # PII security gate
 │       ├── post-match/
-│       │   └── SKILL.md
+│       │   └── SKILL.md                 # Post-match action menu
 │       └── profile-intake/
-│           └── SKILL.md
+│           └── SKILL.md                 # Collects user profile
 ├── data/
-│   ├── cv.md
-│   ├── job.json
-│   └── profile.json
+│   ├── cv.md                            # Last generated CV
+│   ├── job.json                         # Current job data
+│   └── profile.json                     # Current profile data
 ├── docs/
-│   ├── action_plan.md
-│   ├── career_consultation_skill_design.md
-│   ├── core_idea.md
-│   ├── interaction-flow.md
-│   ├── match logic.md
-│   └── roadmap.md
+│   ├── core_idea.md                     # Original concept
+│   ├── discussion_skill_design.md       # Discussion skill design
+│   ├── match_logic.md                   # Matching logic notes
+│   └── roadmap.md                       # Migration roadmap
 ├── logs/
-│   ├── adk_debug.log
-│   ├── match_eval.log
-│   ├── pii_eval.log
-│   ├── skill_eval.log
-│   └── trajectory.log
+│   ├── adk_debug.log                    # ADK debug output
+│   ├── match_eval.log                   # Match eval log
+│   ├── pii_eval.log                     # PII eval log
+│   ├── skill_eval.log                   # Skill eval log
+│   └── trajectory.log                   # Session trajectory log
 ├── specs/
-│   ├── adk.md
-│   ├── architecture.md
-│   ├── behavior.md
-│   └── implementation.md
+│   ├── adk.md                           # ADK implementation spec
+│   ├── architecture.md                  # Architecture + BDD spec
+│   ├── behavior.md                      # UX behavior spec
+│   └── implementation.md                # Technical implementation spec
 ├── submission-evidence/
-│   ├── 01 resume unstructured.txt
-│   ├── 02 Job description.txt
-│   ├── 03 gap bonus discussion.txt
-│   ├── 04 prompt injections.txt
-│   ├── cv.md
-│   ├── job.json
-│   ├── manual_test_trajectory.log
-│   ├── manual_test_trajectory_transcript.txt
-│   └── profile.json
+│   ├── 01 resume unstructured.txt       # Raw resume input
+│   ├── cv.md                            # CV from recorded run
+│   ├── job.json                         # Job from recorded run
+│   ├── manual_test_trajectory.log       # Trajectory log
+│   ├── manual_test_trajectory_transcript.txt  # Terminal transcript
+│   └── profile.json                     # Profile from recorded run
 ├── tests/
-│   ├── match_eval.json
-│   ├── pii_eval.json
-│   ├── run_all.py
-│   ├── run_match_eval.py
-│   ├── run_pii_eval.py
-│   ├── run_skill_evals.py
-│   ├── skill_eval_cases.json
-│   ├── test_career_consultation.py
-│   ├── test_cv_generation_trajectory.py
-│   ├── test_pii_google_and_cv_exit.py
-│   └── test_post_match_exit.py
-├── AGENTS.md
-├── README.md
-├── harness_orchestrator.py
-├── policies.yaml
-└── requirements.txt
+│   ├── match_eval.json                  # Match eval cases
+│   ├── pii_eval.json                    # PII eval cases
+│   ├── run_all.py                       # Runs all tests
+│   ├── run_match_eval.py                # Match eval runner
+│   ├── run_pii_eval.py                  # PII eval runner
+│   ├── run_skill_evals.py               # Skill eval runner
+│   ├── skill_eval_cases.json            # Skill eval cases
+│   ├── test_cv_generation_trajectory.py # CV generation test
+│   ├── test_discussion.py               # Discussion flow test
+│   ├── test_pii_google_and_cv_exit.py   # PII + CV exit test
+│   └── test_post_match_exit.py          # Post-match exit test
+├── AGENTS.md                             # Architecture rules
+├── README.md                             # Project overview
+├── harness_orchestrator.py               # Main orchestrator
+├── policies.yaml                         # Policy-gate rules
+└── requirements.txt                      # Dependencies
 ```
 
 
