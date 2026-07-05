@@ -314,9 +314,6 @@ The previous **Conceptual Workflow** explained how the system is organized.
 
 The following diagram documents the actual user interaction sequence.
 
-A standalone version of this diagram is also available in:
-
-`docs/interaction-flow.md`
 
 ```mermaid
 flowchart TD

@@ -1,0 +1,25 @@
+### What You'll Do
+
+As a **Digital Analytics / Web Tracking Expert**, you see data as the foundation for sound marketing decisions. You take a holistic approach to tracking, enjoy building clean and reliable tracking setups, and are passionate about creating measurable value for our clients.
+
+* Manage the day-to-day implementation of web analytics and web tracking for existing clients and support the rollout of new tracking setups.
+* Implement and maintain GA4 configurations, including events, conversions, and standard tracking concepts.
+* Work hands-on with Google Tag Manager (GTM), creating and maintaining well-structured, documented tags, triggers, and variables.
+* Ensure the correct implementation and operation of consent management platforms (CMPs), including verifying that tracking is triggered appropriately based on user consent.
+* Debug tracking calls using browser developer tools, the console, and network requests, identify the root causes of data discrepancies, and deliver practical solutions.
+* Create and maintain Looker Studio dashboards, including KPIs, channel-specific views, and filter logic, to provide clear and actionable insights.
+* Integrate requirements from different marketing channels, such as SEO, SEA, and email marketing, into cohesive tracking and reporting solutions.
+
+### What You Bring
+
+* Several years of experience in digital marketing and a solid understanding of how the digital marketing ecosystem works.
+* Extensive hands-on experience with GA4 and Google Tag Manager.
+* A strong technical understanding of tracking implementations, particularly around consent management platforms (CMPs) and validating tracking setups.
+* Solid knowledge of JavaScript and JavaScript frameworks.
+* Proven experience working with at least two marketing channels (e.g. SEO, SEA, or email marketing) and a clear understanding of the tracking and reporting requirements for those channels.
+* Initial experience with server-side tracking and/or Power BI.
+* Fluent German, both spoken and written (C2 level); good English is an advantage.
+* An independent, reliable, and goal-oriented way of working.
+* You live in Germany and enjoy working as part of a remote team, while also appreciating the opportunity to meet colleagues in person when needed.
+
+Don't meet every single requirement? That's absolutely fine. We place great importance on professional development and continuous learning, and we'll support you with training, certifications, and other opportunities to help you grow.

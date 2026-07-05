@@ -1,0 +1,70 @@
+
+**Alex Miller**\
+**<alex.miller@example.com>**
+
+So, I've been working in Digital Analytics for many years, at the intersection of marketing, business, and technology.
+
+**01/2022 – 05/2026, Company 1:** I was the sole Digital Analytics expert, fully responsible for tracking, marketing measurement, and reporting in a fast-growing platform company. I worked closely with the Marketing Director, Product Management, and the Development team, designing new processes, KPI frameworks, and analytics solutions. I advised Marketing and Product Management on KPI definition, performance measurement, funnel analysis, and data-driven decision-making across the entire customer journey.
+
+I designed the tracking architecture for hybrid platforms, including both traditional websites and single-page applications with multi-step processes, as well as the GA4 event structure. I implemented event tracking to analyze user journeys, funnel steps, and drop-off points, for example during registration, search, and lead generation. I conducted funnel and segmentation analyses to optimize user journeys and marketing activities. I analyzed customer journeys, identified optimization opportunities, and initiated product improvements.
+
+I established marketing tracking standards, including channel grouping, UTM conventions, and naming conventions, and further developed the marketing measurement framework for cross-channel campaign evaluation. I implemented privacy-compliant campaign tracking, ensuring that data was shared with Meta Ads, Google Ads, Microsoft Ads, Outbrain, and other platforms only for predefined events. I migrated the B2C business from an agency setup to an in-house operation, while selected B2B clients were migrated to eTracker.
+
+I built reporting dashboards in Looker Studio, including calculated dimensions and advanced data transformations. I also developed reporting structures for evaluating campaign performance and marketing costs. The first version went live, with further expansion planned. My employment ended due to a company-wide workforce reduction.
+
+***
+
+**11/2016 – 12/2021, Company 2:** I took over responsibility for the Analytics department during a critical situation shortly after joining the company, as the entire Analytics team had left. I rebuilt the function from scratch. I worked closely with the Marketing Director and various business departments to establish data-driven decision-making processes. I acted as a sparring partner for Marketing, Product Management, and senior management on KPI definition, reporting, interpretation of analytical results, and assessing the business impact of new initiatives.
+
+I managed collaboration with external agencies while simultaneously building in-house capabilities. I designed and implemented tracking for complex multi-step e-commerce configuration processes and conversion funnels. I developed high-performance tracking solutions for product lists and internal promotions, improving data collection while reducing system load.
+
+I performed data-driven analyses to identify inefficient areas of the website and derived concrete optimization measures, for example by removing or redesigning rarely used page elements. I built stable tracking implementations and significantly improved data quality.
+
+I had functional responsibility for tracking, reporting, and conversion rate optimization, including solution design, prioritization, quality assurance, and implementation, partly through external agencies. I introduced and established a structured CRO process. I also implemented initial predictive analytics initiatives to improve marketing efficiency. In addition, I coordinated external partners and cross-functional initiatives in CRO and predictive analytics.
+
+I established organizational structures that enabled Analytics data to become a key foundation for business decisions across multiple departments. I analyzed complex datasets and translated analytical findings into actionable recommendations for Marketing, Product Management, and executive management.
+
+**04/2016 – 10/2016, Company 3:** Digital Analytics Consultant. I was responsible for tracking concepts, quality assurance, reporting, and A/B testing.
+
+***
+
+**06/2014 – 03/2016, Company 4 (Private Healthcare Network, Project-Based):** Marketing Advisor. I built a profitable online marketing setup from the ground up, starting from a previously unprofitable situation. I connected campaigns, landing pages, and offline conversions, such as phone calls, through dynamic call tracking. I implemented end-to-end analysis across the entire customer journey, from the initial ad to the landing page, the phone call, and the final conversion. This significantly reduced lead acquisition costs and turned the channel into one of the most efficient marketing channels. I was responsible for marketing strategy, performance analysis, and campaign management across both online and offline channels.
+
+***
+
+**07/2013 – 05/2014, Company 5 (International E-commerce Startup, later closed due to sanctions):** Chief Marketing Officer (CMO). I was responsible for online marketing, building the marketing team, and establishing the company's marketing infrastructure in an international e-commerce startup.
+
+***
+
+**06/2012 – 03/2013:** Personal projects. I developed digital products, created content, and built online audiences.
+
+***
+
+**04/2008 – 04/2012, Company 6:** Head of Online Marketing. I was responsible for the company's online marketing activities, with a strong focus on content marketing, CRM, community building, and product launches.
+
+***
+
+**2003 – 2008:** Earlier positions. I worked on various projects and held team leadership roles in marketing, media, and event management.
+
+***
+
+**Tools:** GA4, Google Tag Manager, eTracker, Webtrekk, BigQuery, SQL, Looker Studio (formerly Data Studio), Google Ads, Meta Ads, Microsoft Ads, affiliate marketing platforms, Usercentrics, JavaScript, Google Apps Script, GraphQL, Hotjar, as well as foundational experience with server-side tracking using GTM, Stape, and Cloud Run.
+
+**Languages:** German (fluent), English (good working proficiency), Russian (native).
+
+**Professional Development:** I continuously stay up to date in Digital Analytics, tracking, marketing measurement, MarTech, automation, and AI applications, while actively participating in the professional community. I regularly attend industry conferences and community events, including Analytics Pioneers, MeasureCamp Berlin, SEA Stammtisch Berlin, and various Analytics meetups. I volunteered at MeasureCamp Berlin in 2023 and 2024. My certifications include Google Analytics as well as eTracker Expert and eTracker Professional; additional certificates are available upon request. I studied Medicine at JLU Giessen and completed the First State Examination. Before moving into Digital Analytics, I worked in transplantation surgery in a scientific research role.
+
+***
+
+**Experience with AI:** I have practical experience working with AI chatbots as well as developing my own AI agents. I built an AI agent based on a single-agent-plus-skills architecture using the Google Agent Development Kit. It was designed to build trustworthy candidate profiles, perform job matching, provide career guidance, and automatically generate CVs. The solution included deterministic policy gates, session nonce protection against prompt injection, and automated evaluation pipelines. In addition, I developed another locally hosted AI agent that is used in production for working with confidential and sensitive information. I am currently completing Google's Agentic Engineering course on Kaggle.
+
+***
+
+**Speaking Engagements:** Analytics Challenge Berlin (2017 and 2018) and WueWW 2018.
+
+***
+
+I don't think in terms of tools—I think in terms of solutions. Every project starts with the business question, from which the required data, processes, and decision-making framework are derived. At Company 2, I worked in an international environment, communicating in either German or English depending on the situation. I'm particularly interested in a consulting or agency role that involves client interaction and a variety of projects.
+
+
+
