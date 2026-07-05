@@ -344,6 +344,7 @@ async def run_profile_intake_adk(nonce: str):
         if not message:
             continue
 
+        log_trajectory(f"User input received: {message[:200]}", "user_input", message[:200])
         gate_result = policy_gate("raw_input", message)
         if gate_result != "pass":
             expecting_short_answer = False
@@ -455,6 +456,7 @@ async def run_job_intake_adk(nonce: str):
         if not message:
             continue
 
+        log_trajectory(f"User input received: {message[:200]}", "user_input", message[:200])
         gate_result = policy_gate("raw_input", message)
         if gate_result != "pass":
             expecting_short_answer = False
@@ -584,7 +586,9 @@ def get_user_choice(prompt_text: str, options: list) -> int:
         if prompt_text: print(f"\nJobMirror: {prompt_text}")
         for i, opt in enumerate(options, 1): print(f"({i}) {opt}")
         choice = input("Your choice: ").strip()
-        if choice.isdigit() and 1 <= int(choice) <= len(options): return int(choice)
+        if choice.isdigit() and 1 <= int(choice) <= len(options):
+            log_trajectory(f"User choice: {choice} ({options[int(choice)-1]})", "user_input", choice)
+            return int(choice)
 
 def run_job_intake_workflow(nonce: str):
     """Legacy job-intake (openai client), unchanged from v2."""
@@ -677,6 +681,7 @@ async def run_post_match_gap_intake_adk(nonce: str) -> None:
         if not message:
             continue
 
+        log_trajectory(f"User input received: {message[:200]}", "user_input", message[:200])
         gate_result = policy_gate("raw_input", message)
         if gate_result != "pass":
             expecting_short_answer = False
@@ -959,6 +964,7 @@ def run_match_workflow(nonce: str):
         return
     print("\nJobMirror: Ready to begin the job-to-professional match analysis.")
     input("Enter to begin the analysis (1) Start: ")
+    log_trajectory("User started match analysis.", "user_input", "1")
     result = run_match_analysis(profile_text, job_text)
     if not result:
         print("\nJobMirror: Match analysis failed.")
