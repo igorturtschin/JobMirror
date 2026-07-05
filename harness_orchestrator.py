@@ -30,6 +30,7 @@ import string
 import sys
 import datetime
 import yaml
+import logging
 from openai import OpenAI
 from dotenv import load_dotenv
 
@@ -48,6 +49,13 @@ PROFILE_PATH = os.path.join(DATA_DIR, "profile.json")
 JOB_PATH = os.path.join(DATA_DIR, "job.json")
 LOG_PATH = os.path.join(LOG_DIR, "trajectory.log")
 POLICIES_PATH = os.path.join(BASE_DIR, "policies.yaml")
+os.makedirs(LOG_DIR, exist_ok=True)
+logging.basicConfig(
+    filename=os.path.join(LOG_DIR, "adk_debug.log"),
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
+    force=True,
+)
 
 KNOWN_PATTERNS = {
     "EMAIL_REGEX": r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}",
@@ -74,9 +82,18 @@ ADK_MODEL = "openrouter/google/gemini-2.5-flash"
 # ============================================================
 
 def generate_nonce_tag(length: int = 8) -> str:
+    """Generate a random per-session nonce tag.
+    The nonce wraps all user-supplied free text before it is sent to the
+    model or written to storage. The model is instructed to treat everything
+    inside the nonce boundary as passive data — never executable instructions.
+    This is the primary defence against prompt injection."""
     return "".join(random.choices(string.ascii_uppercase + string.digits, k=length))
 
 def wrap_in_nonce(raw_text: str, nonce_tag: str) -> str:
+    """Wrap raw user text in session-scoped nonce delimiters.
+    The unpredictable tag prevents an attacker from closing and re-opening
+    the boundary in injected content, because they cannot know the tag in
+    advance."""
     return f"<[[{nonce_tag}]]>{raw_text}</[[{nonce_tag}]]>"
 
 def get_now_iso():
@@ -98,6 +115,12 @@ def load_policies() -> dict:
     return _policies_cache
 
 def _resolve_pattern(raw_pattern: str) -> str:
+    """Expand symbolic pattern names (e.g. 'EMAIL_REGEX') to their regex strings.
+    policies.yaml stores short symbolic names rather than raw regexes so that
+    the regex library is centralised here and not duplicated in config.
+    Patterns that are not symbolic names are returned as literal regexes after
+    stripping any leading (?i) flag (re.search handles case-insensitivity via
+    the re.IGNORECASE flag at call sites)."""
     parts = [p.strip() for p in raw_pattern.split("|")]
     if all(p in KNOWN_PATTERNS for p in parts):
         resolved = [KNOWN_PATTERNS[p] for p in parts]
@@ -105,6 +128,11 @@ def _resolve_pattern(raw_pattern: str) -> str:
     return re.sub(r"^\(\?i\)", "", raw_pattern.strip())
 
 def _rule_applies(rule: dict, action_name: str) -> bool:
+    """Return True if this policy rule is scoped to the given action.
+    '*' in applies_to means the rule applies to every action (e.g. injection
+    detection). Action-specific rules (e.g. PII regex only at 'save_data')
+    are listed explicitly so that pre-LLM raw_input checks don't block plain
+    names before the PII skill has had a chance to mask them."""
     applies_to = rule.get("applies_to", ["*"])
     return "*" in applies_to or action_name in applies_to
 
@@ -172,6 +200,10 @@ def policy_gate_callback(tool, args: dict, tool_context) -> dict | None:
     return {"status": result}
 
 def save_data(file_path: str, content: str):
+    """Append a timestamped entry to a JSON array file (append-only storage).
+    Design decision: data is never overwritten — every write extends the
+    array. This preserves the full history of profile additions and makes
+    accidental data loss impossible during a session."""
     os.makedirs(DATA_DIR, exist_ok=True)
     entries = []
     if os.path.exists(file_path):
@@ -183,6 +215,9 @@ def save_data(file_path: str, content: str):
         json.dump(entries, f, indent=2, ensure_ascii=False)
 
 def load_all_entries(file_path: str) -> str:
+    """Read all appended entries from a JSON array file and join them.
+    Returns an empty string if the file does not exist yet, so callers
+    can treat a missing file and an empty profile identically."""
     if not os.path.exists(file_path):
         return ""
     with open(file_path, "r", encoding="utf-8") as f:
@@ -518,7 +553,11 @@ def save_profile_gap_entry(text: str, nonce_tag: str) -> dict:
 def run_match_analysis(profile_text: str, job_text: str) -> dict:
     """ADK-backed match skill. Single structured-output call — no tool
     loop needed since match does not collect input or write state, it
-    only compares two already-stored texts and returns JSON."""
+    only compares two already-stored texts and returns JSON.
+    Design decision: match is intentionally read-only and stateless.
+    It receives fully sanitised, nonce-wrapped texts (already PII-gated
+    upstream) and returns a structured dict. Keeping it tool-free makes
+    the analysis deterministic and easily re-runnable after gap-closing."""
     log_trajectory("Initiating match analysis.", "run_match_analysis", "Awaiting response")
     agent = LlmAgent(
         name="match_agent",
@@ -573,6 +612,10 @@ def print_match_result(result: dict):
     for b in result.get("bonus", []): print(f"  * {b}")
 
 def get_multiline_input(prompt_msg: str) -> str:
+    """Collect multi-line free-text input terminated by a 'DONE' sentinel.
+    Used for profile/job paste-in where the user may paste many lines at once.
+    The sentinel avoids the need to press Ctrl+D, which is less discoverable
+    in a terminal demo context."""
     print(f"\nJobMirror: {prompt_msg}\n(Type 'DONE' on a new line to finish)")
     lines = []
     while True:
@@ -582,6 +625,9 @@ def get_multiline_input(prompt_msg: str) -> str:
     return "\n".join(lines).strip()
 
 def get_user_choice(prompt_text: str, options: list) -> int:
+    """Present a numbered menu and return the 1-based index of the chosen option.
+    Loops until valid input is received — no silent defaults. Every choice is
+    written to the trajectory log for auditability."""
     while True:
         if prompt_text: print(f"\nJobMirror: {prompt_text}")
         for i, opt in enumerate(options, 1): print(f"({i}) {opt}")
@@ -974,6 +1020,15 @@ def run_match_workflow(nonce: str):
     run_post_match_menu(nonce, result)
 
 def run_orchestrator():
+    """Top-level deterministic workflow controller.
+    Enforces a fixed, non-negotiable execution order:
+      1. profile-intake  → PII-gated, append-only profile storage
+      2. job-intake      → PII-gated, append-only job storage
+      3. match           → read-only structured analysis
+      4. post-match      → menu (gap-close / discuss / cv-generate)
+    The LLM never decides which step runs next; only the orchestrator
+    advances the workflow. This makes the system auditable and prevents
+    the model from skipping security checkpoints."""
     nonce = generate_nonce_tag()
     print(f"--- DEMO: Session secured with tag [[{nonce}]] ---")
     print("\n=== STEP: profile-intake (ADK) ===")
