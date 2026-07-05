@@ -3,7 +3,8 @@
 JobMirror — единая точка запуска всех тестов/эвалов.
 
 Запускает по порядку:
-  1. pytest (test_discussion.py, test_cv_generation_trajectory.py, test_post_match_exit.py)
+  1. pytest (test_discussion.py, test_cv_generation_trajectory.py,
+             test_post_match_exit.py, test_pii_google_and_cv_exit.py)
   2. run_skill_evals.py   (policy_gate + post_match_menu + persistence)
   3. run_match_eval.py    (требует OPENROUTER_API_KEY, реальные вызовы модели)
   4. run_pii_eval.py      (требует OPENROUTER_API_KEY, реальные вызовы модели)
@@ -32,8 +33,11 @@ def main():
 
     results["pytest"] = run(
         [sys.executable, "-m", "pytest", "tests/", "-v",
-         "-k", "test_discussion or test_cv_generation_trajectory or test_post_match_exit"],
-        "pytest: discussion / cv-generation / post-match exit"
+         # test_pii_google_and_cv_exit included here (not in live block) because
+         # its two PII unit tests mock all model calls and run without a real API key.
+         "-k", ("test_discussion or test_cv_generation_trajectory "
+                "or test_post_match_exit or test_pii_google_and_cv_exit")],
+        "pytest: discussion / cv-generation / post-match exit / pii-unit"
     )
 
     results["skill_evals"] = run(
