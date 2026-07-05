@@ -1,37 +1,39 @@
-**Роадмап (актуальный)**
+# JobMirror — Roadmap
 
-**1. Миграция на ADK** — ✅ ЗАКРЫТО
+This roadmap covers the final stage of the project — implementation on Google ADK.
 
-* \~~Переписать `harness_orchestrator.py`: state machine → ADK session/state, все skills как tools одного `LlmAgent`~~
-* \~~Внедрить `policy_gate` как `before_tool_callback` (решено)~~
-* \~~Перевести остальные skills в tools (по одному, с проверкой)~~
-* Все 7 skills на ADK: profile-intake, job-intake, match, post-match (все 3 опции: gap-closing, discussion, cv-generation)
-* discussion и cv-generation реализованы впервые (раньше не существовали в коде, только SKILL.md)
-* Прямых openai-client вызовов в активном пути не осталось, кроме scan\_for\_pii и semantic\_check\_is\_command (общие внутренние утилиты, не отдельные skills — оставлены как есть намеренно)
+The project went through two prototypes before this: the first established the logic, skills, and architecture; the second rewrote them without the data structuring module, which turned out to be the bottleneck. Each rewrite was fast because the logic stayed the same — only the code changed. Prototype history and plans are in `docs/prototypes_roadmap.md`.
 
-**2. Логи и тесты**
+***
 
-* Сверить `trajectory.log` с ADK-трассировкой (дублировать или нет)
-* Переписать тесты под новый вызов (моки сейчас на `h.client.chat.completions.create`)
+**1. ADK Migration**
 
-**3. Верификация**
+* All 7 skills on ADK: profile-intake, job-intake, match, post-match (all 3 options: gap-closing, discussion, cv-generation)
+* discussion and cv-generation implemented for the first time (previously existed only as SKILL.md, not in code)
+* No direct openai-client calls remain in the active path, except scan\_for\_pii and semantic\_check\_is\_command (shared internal utilities, not separate skills — kept as-is intentionally)
 
-* Сверить `specs/architecture.md` с новой архитектурой
-* \~~Прогнать полный цикл вручную (profile → PII → job → PII → match → post-match меню все 3 опции → CV)~~ ✅ СДЕЛАНО, работает end-to-end: profile-intake → PII → job-intake → PII → match → post-match (gap-closing → re-match, discussion Q\&A, CV с Vibe Diff → cv.md → прощальный экран → выход)
+**2. Logs and Tests**
 
-**4. Документация**
+* Reconcile `trajectory.log` with ADK tracing (duplicate or not)
+* Rewrite tests for the new call signature (mocks currently on `h.client.chat.completions.create`)
 
-* Обновить `README.md` под ADK-setup
-* Собрать `docs/` (action\_plan, discussion\_skill\_design, match\_logic, Idea, системная инструкция) — без `git comment.md`
-* README должен явно закрывать evaluation-таблицу капстоуна (ADK ✓, MCP Server — нет пока, Security features ✓, Deployability, Agent skills)
+**3. Verification**
 
-**5. Сборка папки для сдачи**
+* Reconcile `specs/architecture.md` with the new architecture
+* Full manual cycle completed: profile-intake → PII → job-intake → PII → match → post-match (gap-closing → re-match, discussion Q\&A, CV with Vibe Diff → cv.md → farewell screen → exit)
 
-* Финальный прогон → сохранить в `data/` (profile.json, job.json, cv.md + copy trajectory.log)
-* Проверить `.gitignore` (нет `.env`, нет сырых PII)
+**4. Documentation**
 
-**6. Материалы для сабмита (вне кода)**
+* Update `README.md` for ADK setup
+* Collect `docs/` (action\_plan, discussion\_skill\_design, match\_logic, Idea, system prompt) — excluding `git comment.md`
+* README must explicitly cover the capstone evaluation table (ADK ✓, MCP Server — not yet, Security features ✓, Deployability, Agent skills)
 
-* Video (5 мин): проблема → почему агенты → архитектура → демо → как строили
+**5. Submission Folder Assembly**
+
+* Final run → save to `data/` (profile.json, job.json, cv.md + copy trajectory.log)
+* Check `.gitignore` (no `.env`, no raw PII)
+
+**6. Submit Materials (outside code)**
+
+* Video (5 min): problem → why agents → architecture → demo → how it was built
 * Kaggle Writeup
-
